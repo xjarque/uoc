@@ -1,0 +1,152 @@
+---
+title: Actividad 4
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+
+<!--Header-->
+<div><div class="row" style="color: #4D4D4D;font-size: 15px;padding-bottom: 20px"><div class="col-md-7"><img src="http://materials.cv.uoc.edu/cdocent/common/img/logo-uoc.png" alt="Logo UOC" class="img-responsive" style="margin:20px 0px 0px"></div><div class="col-md-5"><h1 style="margin:15px 0px 0px;font-size: 40px;">Limpieza del conjunto de datos con R</h1><div style="text-align:left;margin-top: 5px;"></div></div></div>
+
+
+<div class="row" style="color: #4D4D4D;font-size: 15px;padding-bottom: 20px background: #FCB517"><div style="text-align:right;">Autor: Xavier Duran Albareda <span style="margin-left: 30px;">Coordinación: Julià Minguillón</span></div></div>
+
+
+<div class="row" style="background: #FCB517;padding: 10px 20px;"><div style="text-align:right;">PID_00233252 </div></div>
+
+
+## Introducción
+
+En esta actividad aprenderemos a limpiar los datos, el paso necesario antes de hacer cualquier análisis o modelo. Ésto incluye tratar los datos vacíos o datos que faltan, convertir tipos de datos y binarizar variables.
+
+El conjunto de datos que usaremos en esta actividad corresponde a los metadatos de más de 5000 películas en IMDB, el [IMDB 5000 Movie Dataset](https://data.world/popculture/imdb-5000-movie-dataset).
+
+Lo primero que haremos, como siempre, será leer los datos y darles un vistazo.
+
+```{r}
+library(readr)
+
+df <- read_csv('data/movie_metadata.csv')
+df
+```
+
+```{r}
+summary(df)
+```
+
+## Tratamiento de los datos no disponibles
+
+Uno de los problemas más habituales que nos podemos encontrar en nuestros conjuntos de datos es que no tengamos todas las observaciones para todos los registros. Es decir, que algunas de las variables no estén disponibles. Este hecho se puede dar por varias razones: porque estos datos no existen, porque no se introdujeron correctamente o simplemente por algun error de computación. El caso es que en la mayoría de análisis, los datos no disponibles pueden causar errores. A continuación veremos tres estrategias diferentes para solucionar este problema.
+
+- Eliminar las variables con un porcentaje alto de valores vacíos
+- Eliminar las filas con variables no disponibles
+- Imputar los datos o llenarlos con un valor por defecto
+
+### Eliminar las variables con un tanto por ciento alto de valores vacíos
+
+La función `colMeans` nos muestra qué proporción de datos no disponibles tenemos por columna.
+
+```{r}
+sort(colMeans(is.na(df)), decreasing = TRUE)
+```
+
+Si establecemos como criterio que no queremos usar variables que tengan más del 5% de valores `NaN`, eliminaremos las variables `gross`, `content_rating`, `budget` y `aspect_ratio`. La función `which` nos permite eliminar las columnes por su nombre.
+
+```{r}
+columns_to_remove <- which(colMeans(is.na(df)) > 0.05)
+columns_to_remove
+```
+
+```{r}
+df_filtered <- df[, -columns_to_remove]
+colnames(df_filtered)
+```
+
+```{r}
+df_filtered
+```
+
+### Eliminar las filas con variables no disponibles
+
+En nuestro _dataset_ pueden haber registros o filas que no tengan parte de la información. Una solución drástica sería eliminar todos aquellos registros que les falte alguna variable.
+
+Usaremos la función `complete.cases` para este caso.
+
+```{r}
+df[complete.cases(df),]
+```
+
+### Rellenar con un valor por defecto
+
+Una de las estrategias más habituales es rellenar los valores no conocidos con un valor por defecto. Por ejemplo, podríamos decidir asumir que si no tenemos datos de los _likes_ del director en el _Facebook_, es que no tiene ninguno.
+
+```{r}
+df$director_facebook_likes[is.na(df$director_facebook_likes)] <- 0
+```
+
+O bién, podríamos decidir calcular la media de los _likes_ e imputarlo.
+
+```{r}
+df$director_facebook_likes[is.na(df$director_facebook_likes)] <- mean(df$director_facebook_likes)
+```
+
+Las técnicas de imputació que hemos visto son las más sencillas, pero pueden llegar a ser tan complejas como queramos.
+
+## Transformación de las variables
+
+Un paso previo imprescindible a aplicar un modelo a los datos es la realización de algunas transformaciones a las variables para adaptarlas a les características del análisis que queremos realizar. A continuación presentamos tres de las transformaciones más habituales.
+
+### Conversión de tipos de datos
+
+Hay veces que los tipos de datos que infiere `Pandas` no son los que nosotros queremos. En este caso, deberemos convertir los tipos de datos de las variables. Para ver de qué tipo de datos es cada columna de nuestro _dataset_, usaremos el atributo `class`, que aplicaremos a todas las columnas del _dataset_ con la función `sapply`.
+
+```{r}
+sapply(df, class)
+```
+
+Vemos que la variable `color` es de tipo `character`. Si queremos convertirla a categórica, es decir un factor, simplemente usaremos la función `as.factor()`.
+
+```{r}
+df$color <- as.factor(df$color)
+```
+
+Ahora podemos ver fácilmente la distribución de la variable con la función `table`.
+
+```{r}
+table(df$color)
+```
+
+### Binarización de variables
+
+La mayoría de herramientas y modelos para analizar datos sólo aceptan números como valores de las variables. Esto puede ser un problema si en nuestras variables tenemos variables categóricas. Para convertir estas variables en numéricas, la manera más sencilla es hacer lo que se conoce por _one-hot encoding_, es decir, transformar cada categoría de la variable en un vector binario que indique si la variable tiene este valor o no.
+
+En nuestro dataset, por ejemplo, transformaremos la variable _color_, que tiene dos valores diferentes.
+
+```{r}
+unique(df$color)
+```
+
+La función `dummyVars` y la función `predict` hacen todo el trabajo del _one-hot encoding_.
+
+```{r}
+library(caret)
+dummies <- predict(dummyVars(~ color, data = df), newdata = df)
+dummies
+```
+
+Ahora sólo hace falta eliminar la variable `color` en nuestro _dataset_ y la sustituimos por las dos variables binarias que hemos creado.
+
+```{r}
+library(dplyr)
+df <- select(df, -color) %>% cbind(dummies)
+df
+```
+
+Ya tenemos las nuevas variables binarizadas `color.Black and White` i `color.Color`.
+
+<!--Footer-->
+ <div style="background: #333333;padding: 35px 0px;margin-top: 25px;"><div class="row"><div class="col-sm-12"><img src="http://materials.cv.uoc.edu/cdocent/common/img/logo-uoc-bottom.png" alt="Logo UOC" class="img-responsive" style="margin: 0 auto; display: block;"></div></div></div>
+<!--/Footer-->
+

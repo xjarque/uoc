@@ -1,0 +1,161 @@
+---
+title: Actividad 8
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+
+<!--Header-->
+<div><div class="row" style="color: #4D4D4D;font-size: 15px;padding-bottom: 20px"><div class="col-md-7"><img src="http://materials.cv.uoc.edu/cdocent/common/img/logo-uoc.png" alt="Logo UOC" class="img-responsive" style="margin:20px 0px 0px"></div><div class="col-md-5"><h1 style="margin:15px 0px 0px;font-size: 40px;">Podemos predecir la diabetes con datos de laboratorio?</h1><div style="text-align:left;margin-top: 5px;"></div></div></div>
+
+
+<div class="row" style="color: #4D4D4D;font-size: 15px;padding-bottom: 20px background: #FCB517"><div style="text-align:right;">Autor: Xavier Duran Albareda <span style="margin-left: 30px;">Coordinación: Julià Minguillón</span></div></div>
+
+
+<div class="row" style="background: #FCB517;padding: 10px 20px;"><div style="text-align:right;">PID_00233252 </div></div>
+
+## Introducción
+
+En este ejemplo trataremos el _dataset_ [NHANES](https://www.kaggle.com/cdc/national-health-and-nutrition-examination-survey) para predecir la enfermedad de diabetes de tipo 2 a partir de los datos de los análisis de laboratorio. Usaremos el método XGBoost para entrenar el modelo y encontrar las variables con mejor valor predictivo.
+
+![T2DM](https://modernrx.files.wordpress.com/2016/12/diabetes0.png)
+
+```{r}
+if(!require(ggplot2)){
+    install.packages('ggplot2',repos='http://cran.es.r-project.org')
+    require(ggplot2)
+}
+
+if(!require(readr)){
+    install.packages('readr',repos='http://cran.es.r-project.org')
+    require(readr)
+}
+
+if(!require(data.table)){
+    install.packages('data.table',repos='http://cran.es.r-project.org')
+    require(data.table)
+}
+
+if(!require(dplyr)){
+    install.packages('dplyr',repos='http://cran.es.r-project.org')
+    require(dplyr)
+}
+
+if(!require(xgboost)){
+    install.packages('xgboost',repos='http://cran.es.r-project.org')
+    require(xgboost)
+}
+
+if(!require(caret)){
+    install.packages('caret',repos='http://cran.es.r-project.org')
+    require(caret)
+}
+
+if(!require(pROC)){
+    install.packages('pROC',repos='http://cran.es.r-project.org')
+    require(pROC)
+}
+```
+
+## Obtener los datos
+
+Usaremos dos archivos para el análisis.
+1. El fichero _medications_, que tiene los diagnósticos donde seleccionaremos los pacientes con diabetes tipo 2.
+2. El fichero _labs_, que tiene todas las medidas de laboratorio que serán nuestros predictores.
+
+```{r}
+medications <- fread('medications.csv')
+labs <- fread('labs.csv')
+```
+
+## Definimos la variable dependiente
+
+El código ICD-10 para la __diabetis melitus Tipus 2__ es el __E11__, de forma que crearemos la variable _is_diabetic_ para definir aquellos que tienen este código.
+
+Los códigos de diagnóstico ICD-10 se pueden encontrar en el [ICD-10 Browser of the World Health Organization](http://apps.who.int/classifications/icd10/browse/2010/en#/E11)
+
+```{r}
+diabetes <- medications %>%
+  mutate(
+    is_diabetic = ifelse(RXDRSC1 == 'E11', 1, 0)
+  ) %>%
+  select(
+    SEQN,
+    is_diabetic
+  ) %>%
+  unique() %>%
+  left_join(labs)
+
+outcome <- c('is_diabetic')
+```
+
+## Definimos las variables independientes o predictores
+
+Todas las variables de laboratorio que tenemos disponibles lo serán.
+
+```{r}
+predictors <- names(diabetes)[!names(diabetes) %in% outcome]
+```
+
+## Construimos el modelo
+
+Entrenaremos un modelo XGBoost.
+
+```{r}
+mx.diabetes <- as.matrix(diabetes, rownames.force = NA)
+train_dmatrix <- xgb.DMatrix(data = mx.diabetes[, predictors], label = mx.diabetes[, outcome])
+
+fit.xgb <- xgboost(
+  data = train_dmatrix,
+  nrounds = 10,
+  objective = "binary:logistic"
+)
+```
+
+## Evaluación del modelo
+
+Evaluaremos el modelo en el mismo conjunto de entrenamiento, y después mostraremos la matriz de confusión y la curva ROC.
+
+```{r}
+predictions <- predict(fit.xgb, as.matrix(diabetes[, predictors]))
+```
+
+```{r}
+mean(as.numeric(predictions > 0.5) != diabetes[, outcome])
+```
+
+```{r}
+confusionMatrix(
+  factor(as.numeric(predictions > 0.1)),
+  factor(diabetes[, outcome]),
+  mode = "everything"
+)
+```
+
+```{r}
+plot.roc(
+  as.numeric(predictions > 0.5),
+  diabetes[, outcome],
+  main = "Confidence intervals",
+  percent = TRUE,
+  ci = TRUE,
+  print.auc=TRUE
+)
+```
+
+## Variables con más valor predictivo de la diabetes tipo 2
+
+La variable más predictiva es LBXGH, que corresponde al porcentaje de glicohemoglobina respecto el total de hemoglobina, que efectivamente está relacionada con la enfermedad de la diabetis melitus tipo 2.
+
+```{r}
+importance_matrix <- xgb.importance(feature_names = predictors, model = fit.xgb)
+xgb.plot.importance(importance_matrix[1:10,])
+head(importance_matrix)
+```
+
+<!--Footer-->
+ <div style="background: #333333;padding: 35px 0px;margin-top: 25px;"><div class="row"><div class="col-sm-12"><img src="http://materials.cv.uoc.edu/cdocent/common/img/logo-uoc-bottom.png" alt="Logo UOC" class="img-responsive" style="margin: 0 auto; display: block;"></div></div></div>
+<!--/Footer-->
+

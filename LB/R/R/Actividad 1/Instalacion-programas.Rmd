@@ -1,0 +1,86 @@
+---
+title: Actividad 1
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+
+<!--Header-->
+<div><div class="row" style="color: #4D4D4D;font-size: 15px;padding-bottom: 20px"><div class="col-md-7"><img src="http://materials.cv.uoc.edu/cdocent/common/img/logo-uoc.png" alt="Logo UOC" class="img-responsive" style="margin:20px 0px 0px"></div><div class="col-md-5"><h1 style="margin:15px 0px 0px;font-size: 40px;">Instalación de R y RStudio </h1><div style="text-align:left;margin-top: 5px;"></div></div></div>
+
+
+<div class="row" style="color: #4D4D4D;font-size: 15px;padding-bottom: 20px background: #FCB517"><div style="text-align:right;">Autor: Xavier Duran Albareda <span style="margin-left: 30px;">Coordinación: Julià Minguillón</span></div></div>
+
+
+<div class="row" style="background: #FCB517;padding: 10px 20px;"><div style="text-align:right;">PID_00233252 </div></div>
+
+# Introducción
+
+**R** es un lenguaje especializado en computación estadística y gráficos que en los últimos años ha ido ganando importancia por su utilidad en el ámbito de la ciencia de datos. 
+
+
+**RStudio** es un entorno de desarrollo integrado (IDE) para R. Incluye una consola, un editor con syntax highlighting que permite la ejecución directa de codigo, además de herramientas para la visualizacion de gráficas, histórico de comandos, debugging y gestión de entornos de trabajo. 
+
+
+<br><div class="row"><div class="col-sm-3"><img src="images/r.png" alt="readr" align></div><div class="row"><div class="col-sm-3"><img src="images/Rstudio.png" alt="readr"></div></div>
+
+
+## Instalación de R y Rstudio
+
+En primer lugar, vamos a *instalar R*. Para ello, iremos a la página web de [`R`](https://cran.r-project.org/) y nos descargaremos e instalaremos la versión acorde con el sistema operativo que tengamos. 
+
+- [`Instalar R en Windows`](https://cran.r-project.org/bin/windows/base/)
+
+- [`Instalar R en Linux`](https://cran.r-project.org/bin/linux/). En este enlace deberéis escoger la distribución de linux que tengáis y seguir las instrucciones de instalación que se indican. 
+
+- [`Instalar R en Mac OS X`](https://cran.r-project.org/)
+
+
+
+
+Una vez tengamos instalado R, procederemos a **instalar RStudio**. Para ello, iremos a la página oficial del software en la parte de [`descargas`](https://rstudio.com/products/rstudio/download/) para descargar y instalar la versión de acuerdo con el sistema operativo que tengáis. 
+
+
+Una vez instalado RStudio, abrirlo y comprobar que la instalación se ha realizado correctamente. 
+
+
+# Markdown 
+
+Como se ha comentado brevemente en la introducción, con R se puede ejecutar código desde consola y mediante la generación de scripts con el editor de código.  No obstante, R también ofrece la posibilidad de combinar código con contenido explicativo gracias al uso de la **libreria rmarkdown** 
+
+[`R Markdown`](https://rmarkdown.rstudio.com/) proporciona un marco de creación de documentos para la ciencia de datos. Se puede usar un solo archivo R Markdown para
+
+- Guardar y ejecutar código
+- Generar informes de alta calidad que se pueden compartir
+
+Los documentos de R Markdown son completamente reproducibles y admiten docenas de formatos de salida estáticos y dinámicos (html, pdf, word,..). Nosotros, vamos a trabajar con HTML como formato de salida. De hecho, a partir de la segunda actividad podréis ver que con el archivo .Rmd relativo a la actividad se adjunta el documento HTML de salida para que lo podáis consultar. 
+
+Para utilizar la librería, debe previamente ser instalada con la siguiente instrucción:
+```
+
+install.packages("rmarkdown")
+
+```
+Una vez instalada la librería, se puede generar el report a partir del fichero .Rmd ejecutando el comando render:
+
+```
+library(rmarkdown)
+render("1-example.Rmd")
+
+```
+
+O, una vez abierto el fichero, utilizar el boton “Knit” del RStudio IDE para renderizar el fixero y obtener una previsualización del mismo. 
+
+Para conocer más sobre Rmarkdown se recomienda que reviseis la página con la documentación oficial de [`R Markdown`](https://rmarkdown.rstudio.com/), donde se explica más detalladamente como funciona, la sintaxis que sigue y sus principales comandos. Además de considerar el cheatsheet que se adjunta con esta primera actividad. 
+
+
+ 
+
+
+<!--Footer-->
+ <div style="background: #333333;padding: 35px 0px;margin-top: 25px;"><div class="row"><div class="col-sm-12"><img src="http://materials.cv.uoc.edu/cdocent/common/img/logo-uoc-bottom.png" alt="Logo UOC" class="img-responsive" style="margin: 0 auto; display: block;"></div></div></div>
+<!--/Footer-->
+
+

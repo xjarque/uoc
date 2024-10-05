@@ -1,0 +1,91 @@
+---
+title: Actividad 2
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+
+<!--Header-->
+<div><div class="row" style="color: #4D4D4D;font-size: 15px;padding-bottom: 20px"><div class="col-md-7"><img src="http://materials.cv.uoc.edu/cdocent/common/img/logo-uoc.png" alt="Logo UOC" class="img-responsive" style="margin:20px 0px 0px"></div><div class="col-md-5"><h1 style="margin:15px 0px 0px;font-size: 40px;">Lectura y escritura de ficheros de datos</h1><div style="text-align:left;margin-top: 5px;"></div></div></div>
+
+
+<div class="row" style="color: #4D4D4D;font-size: 15px;padding-bottom: 20px background: #FCB517"><div style="text-align:right;">Autor: Xavier Duran Albareda <span style="margin-left: 30px;">Coordinación: Julià Minguillón</span></div></div>
+
+
+<div class="row" style="background: #FCB517;padding: 10px 20px;"><div style="text-align:right;">PID_00233252 </div></div>
+
+# Introducción
+
+La exploración, manipulación, visualización y análisis de datos empieza con la carfa de los datos des de diferentes formatos de ficheros. En esta actividad veremos cómo leer com ficheros de tipo `CSV` y `Excel`, cargarlos en un `DataFrame` y volverlos a guardar en otro fichero.
+
+usaremos las librerías [`readr`](https://readr.tidyverse.org) y [`readxl`](https://readxl.tidyverse.org), que forman parte de la colección de paquetes [`tidyverse`](https://tidyverse.org/).
+
+<br><div class="row"><div class="col-sm-3"><img src="images/readr.png" alt="readr"></div><div class="col-sm-3"><img src="images/readxl.png" alt="readxl"></div></div>
+
+## Ficheros CSV
+
+El acrónimo `CSV` corresponde a _Comma Separated Values_, es decir, ficheros separados por comas. De hecho, veremos que la función de `dplyr` que usaremos para leer este tipo de ficheros también sirve para leer ficheros separados por otros carácteres, como los `TSV` o _Tab-Separated Values_, o los ficheros separados por punto y coma.
+
+El fichero `CSV` que leeremos corresponde al dataset de la competición [Titanic: Machine Learning from Disaster](https://www.kaggle.com/c/titanic) de [Kaggle](https://www.kaggle.com/).
+
+Para leer un fichero `CSV` usaremos la función [`read_csv`](https://readr.tidyverse.org/reference/read_delim.html) de `readr`.
+
+```{r}
+library(readr)
+df <- read_csv("data/titanic.csv")
+df
+```
+
+Si queremos leer un fichero que no está separado por comas, usaremos la función [`read_delim`](https://readr.tidyverse.org/reference/read_delim.html) y especificaremos el separador con el parámetro `delim`.
+
+```{r}
+df <- read_delim("data/titanic.tsv", delim='\t')
+df
+```
+
+Para volverlo a guardar en otro fichero, por ejemplo separado por punto y coma, usaremos la función [`write_csv`](https://readr.tidyverse.org/reference/write_delim.html) de `readr`.
+
+```{r}
+write_csv(df, 'data/titanic_semicolon.csv')
+```
+
+##  Ficheros Excel
+
+Aún y ser un software propietario, `Excel` es una de las herramientas más populares y usadas en el tratamiento de datos. [`readxl`](https://readxl.tidyverse.org/) es capaz de leer los ficheros que genera este software en sus diferentes versiones. 
+
+El fichero `Excel` que leeremos corresponde al dataset de la competición [TMDB 5000 Movie Dataset](https://www.kaggle.com/tmdb/tmdb-movie-metadata) de [Kaggle](https://www.kaggle.com/). Este `Excel` tiene tres `sheets` que corresponden a las películas de los años `1900s`, `2000s` y `2010s`.
+
+Para leer un fichero `Excel` usaremos la función [`read_excel`](https://readxl.tidyverse.org/reference/read_excel.html) de [`readxl`](https://readxl.tidyverse.org/).
+
+```{r}
+library(readxl)
+xls_file <- read_excel("data/movies.xls")
+xls_file
+```
+
+Nuestro `Excel` tiene tres `sheets`. Si no le decimos nada, por defecto la función [`read_excel`](https://readxl.tidyverse.org/reference/read_excel.html) nos carga el primero. Si quermos ver qué `sheets` tiene, podemos usar la función [`excel_sheets`](https://readxl.tidyverse.org/reference/excel_sheets.html).
+
+```{r}
+excel_sheets("data/movies.xls")
+```
+
+Y a continuación podemos especificar que abra otro con el parámetro `sheet`.
+
+```{r}
+xls_file <- read_excel("data/movies.xls", sheet = "2010s")
+xls_file
+```
+
+Para volverlo a guardar en otro fichero `Excel` usaremos la función  [`write.xlsx`](https://rdrr.io/cran/openxlsx/man/write.xlsx.html) de `openxlsx`.
+
+```{r}
+openxlsx::write.xlsx(xls_file, file = "data/movies_2010.xlsx")
+```
+
+<!--Footer-->
+ <div style="background: #333333;padding: 35px 0px;margin-top: 25px;"><div class="row"><div class="col-sm-12"><img src="http://materials.cv.uoc.edu/cdocent/common/img/logo-uoc-bottom.png" alt="Logo UOC" class="img-responsive" style="margin: 0 auto; display: block;"></div></div></div>
+<!--/Footer-->
+
+

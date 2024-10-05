@@ -1,0 +1,130 @@
+---
+title: Actividad 7C
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+
+<!--Header-->
+<div><div class="row" style="color: #4D4D4D;font-size: 15px;padding-bottom: 20px"><div class="col-md-7"><img src="http://materials.cv.uoc.edu/cdocent/common/img/logo-uoc.png" alt="Logo UOC" class="img-responsive" style="margin:20px 0px 0px"></div><div class="col-md-5"><h1 style="margin:15px 0px 0px;font-size: 40px;">Combinación de clasificadores: Random forests</h1><div style="text-align:left;margin-top: 5px;"></div></div></div>
+
+
+<div class="row" style="color: #4D4D4D;font-size: 15px;padding-bottom: 20px background: #FCB517"><div style="text-align:right;">Autor: Xavier Duran Albareda <span style="margin-left: 30px;">Coordinación: Julià Minguillón</span></div></div>
+
+
+<div class="row" style="background: #FCB517;padding: 10px 20px;"><div style="text-align:right;">PID_00233252 </div></div>
+
+## Introducción
+
+En este ejemplo, adaptado del libro [Minería de datos, algoritmos y modelos](http://oer.uoc.edu/libroMD/), se muestra como generar un clasificador arbol de decisión y como mejorarlo con la técnica de [Random forests](https://en.wikipedia.org/wiki/Random_forest).
+
+Los datos analizados corresponden al _dataset_ [Breast Cancer Wisconsin (Diagnostic) Data Set](https://www.kaggle.com/uciml/breast-cancer-wisconsin-data).
+
+### Instalar los packages necesarios en caso de no haberlo hecho anteriormente
+
+```{r}
+if(!require(rpart)){
+    install.packages('rpart',repos='http://cran.es.r-project.org')
+    require(rpart)
+}
+if(!require(caret)){
+    install.packages('caret',repos='http://cran.es.r-project.org')
+    require(caret)
+}
+if(!require(randomForest)){
+    install.packages('caret',repos='http://cran.es.r-project.org')
+    require(caret)
+}
+set.seed(17)
+```
+
+### Carga de los datos. 
+
+```{r}
+wdbc=read.table(
+    url("https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data"),
+    sep=",",
+    header=FALSE
+)
+dim(wdbc)
+dataset <- wdbc[,(2:32)]
+```
+
+### Parámetros de creación del modelo
+
+Utilizaremos la métrica _Accuracy_ que mide el porcentaje de instancias correctas sobre total. Haremos la validación cruzada o _crossvalidation_ con 10 _folds_.
+
+```{r}
+control <- trainControl(method="repeatedcv", number=10, repeats=3, savePredictions = TRUE)
+metric <- "Accuracy"
+```
+
+### Creamos un primer modelo de árbol.
+
+```{r}
+model.cart<-train(V2~.,data=dataset,method="rpart", metric=metric,trControl=control)
+```
+
+### Matriz de confusión
+
+```{r}
+confusionMatrix(model.cart)
+```
+
+###  Mostramos todas sus características.
+
+```{r}
+print(model.cart)
+plot(model.cart)
+ctreeVarImp = varImp(model.cart)
+plot(ctreeVarImp)
+```
+
+### Creación de un árbol con el método Random Forest
+
+```{r}
+ model.rf <- train(V2~., data=dataset, method="rf",metric=metric, trControl=control)
+```
+
+### Matriz de confusión
+
+```{r}
+confusionMatrix(model.rf)
+```
+
+###  Mostramos todas sus características.
+
+```{r}
+print(model.rf)
+```
+
+```{r}
+plot(model.rf)
+```
+
+```{r}
+plot(model.rf$finalMode)
+```
+
+```{r}
+ctreeVarImp = varImp(model.rf)
+plot(ctreeVarImp)
+```
+
+### Sumarizamos y comparamos los datos de ambos modelos
+
+```{r}
+rf_results <- resamples(list(rf=model.rf, cart=model.cart))
+summary(rf_results)
+```
+
+```{r}
+dotplot(rf_results)
+```
+
+<!--Footer-->
+ <div style="background: #333333;padding: 35px 0px;margin-top: 25px;"><div class="row"><div class="col-sm-12"><img src="http://materials.cv.uoc.edu/cdocent/common/img/logo-uoc-bottom.png" alt="Logo UOC" class="img-responsive" style="margin: 0 auto; display: block;"></div></div></div>
+<!--/Footer-->
+
